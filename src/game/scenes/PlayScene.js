@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 let th;
-let nJugadors = 4
+let nJugadors = 1
 let fitxesSprite = []
 let fitxes = [];
 let tamany = 10
@@ -68,7 +68,6 @@ export default class PlayScene extends Scene {
    fitxes.push(new coordenades(taulerAlcada - 1, 0));
    fitxes.push(new coordenades(taulerAlcada - 1, taulerAmplada -1));
 
-	//console.log(tauler)
 	// When loading from an array, make sure to specify the tileWidth and tileHeight
 	map = this.make.tilemap({ data: tauler, tileWidth: midaTile, tileHeight: midaTile });
 	tiles = map.addTilesetImage('tile_set');
@@ -122,11 +121,15 @@ export default class PlayScene extends Scene {
     var spriteMoure = fitxesSprite[jugador]
     var nouPosX = (Math.floor(posicio.x / midaTile) + 1);
     var nouPosY = (Math.floor(posicio.y / midaTile) + 1);
-    /*console.log(nouPosX);
+    console.log(" ON ES MOU ");
+    console.log("JUGADRO = " + String(jugador));
+    console.log(nouPosX);
     console.log(nouPosY);
     console.log(casellaPosible[nouPosX][nouPosY]);
-    console.log(" ");*/
+    console.log(" ");
     if ( casellaPosible[nouPosX][nouPosY] ) {
+      console.log("JUGADOR ACT = " + String(jugadorAct));
+      //marca_posible(fitxesSprite[jugadorAct].x, fitxesSprite[jugadorAct].y); // TEST
       casellaPosible[nouPosX][nouPosY] = false;
       flip_casella(nouPosX * midaTile, nouPosY * midaTile);
       spriteMoure.x = nouPosX * midaTile;
@@ -136,7 +139,7 @@ export default class PlayScene extends Scene {
       if (jugadorAct == nJugadors) {
         jugadorAct = 0;
       }
-      marca_posible(fitxesSprite[jugadorAct].x, fitxesSprite[jugadorAct].y, Phaser.Math.Between(1, 6));
+      marca_posible(fitxesSprite[jugadorAct].x, fitxesSprite[jugadorAct].y);//, Phaser.Math.Between(1, 6));
     }
   }
 
@@ -144,41 +147,45 @@ export default class PlayScene extends Scene {
     th.add.image(casellaX - midaTile / 2, casellaY - midaTile / 2 , 'flip').setDepth(0);
   }
 
-  function marca_posible(casellaX, casellaY, numDau = 5) {
-    var posXtauler = (Math.floor(casellaX / midaTile) + 1);
-    var posYtauler = (Math.floor(casellaY / midaTile) + 1);
-    console.log(posXtauler);
-    console.log(posYtauler);
-    console.log(" ");
+  function marca_posible(casellaX, casellaY, numDau = 3) {
+    var posXtauler = (Math.floor(casellaX / midaTile));
+    var posYtauler = (Math.floor(casellaY / midaTile));
     for (var i = 0; i < cruzeta.length; i++) {
       cruzeta[i].destroy();
     }
-    if (posYtauler - numDau > 2 && casellaPosible[posXtauler][posYtauler - numDau + 1]){
-      var verticalTop = th.add.image(casellaX, casellaY - midaTile, 'overlay');
-      verticalTop.setScale(1, numDau);
-      verticalTop.setOrigin(1);
-      cruzeta.push(verticalTop);
+    //MARCA LA CASELLA
+    var over = th.add.image(casellaX, casellaY, 'overlay');
+    over.setOrigin(1);
+    over.setScale(1)
+    cruzeta.push(over);
+
+    //MOVIMENT POSIBLE VERTICAL ADALT
+    if (posYtauler - numDau > 1 && casellaPosible[posXtauler][posYtauler - numDau]){ // FUNCIONA
+      dibuixa_overlay(casellaX, casellaY - midaTile, 1, numDau, false);
     }
-
-    if (posYtauler + numDau < taulerAlcada && casellaPosible[posXtauler][posYtauler + numDau]){
-      var verticalBot = th.add.image(casellaX, casellaY + (numDau * midaTile), 'overlay');
-      verticalBot.setScale(1, numDau + 1);
-      verticalBot.setOrigin(1);
-      cruzeta.push(verticalBot);
+    //MOVIMENT POSIBLE VERTICAL ABAIX
+    if (posYtauler + numDau < taulerAlcada && casellaPosible[posXtauler][posYtauler + numDau]){ //FUNCIONA
+      dibuixa_overlay(casellaX, casellaY + (numDau * midaTile), 1, numDau);
     }
-
-    if (posXtauler - numDau < taulerAmplada - 1 && casellaPosible[posXtauler + numDau][posYtauler - numDau]){
-      var horizontalR = th.add.image(casellaX - midaTile, casellaY, 'overlay');
-      horizontalR.setScale(numDau, 1);
-      horizontalR.setOrigin(1);
-      cruzeta.push(horizontalR);
+    //MOVIMENT POSIBLE HORITZONTAL ESQUERRA
+    if (posXtauler - numDau > 0 && casellaPosible[posXtauler - numDau][posYtauler]){
+      dibuixa_overlay(casellaX - midaTile, casellaY, numDau, 1, false);
     }
-
-
-    if (posXtauler - numDau > 0 && casellaPosible[posXtauler - numDau][posYtauler]){ //Works
-      var horizontalL = th.add.image(casellaX + (midaTile * numDau), casellaY, 'overlay');
-      horizontalL.setScale(numDau, 1);
-      horizontalL.setOrigin(1);
-      cruzeta.push(horizontalL);
+    //MOVIMENT POSIBLE HORITZONTAL DRETA
+    if (posXtauler + numDau <= taulerAmplada && casellaPosible[posXtauler + numDau][posYtauler]){
+      dibuixa_overlay(casellaX + (midaTile * numDau), casellaY, numDau);
     }
 }
+
+  function dibuixa_overlay(posX, posY, scaleX, scaleY = 1, final = true){
+    var overlay = th.add.image(posX, posY, 'overlay');
+    overlay.setScale(scaleX, scaleY);
+    overlay.setOrigin(1);
+    cruzeta.push(overlay);
+    if (final){
+      cruzeta.push(th.add.image(posX, posY, 'overlay2').setOrigin(1));
+    }
+    else {
+      cruzeta.push(th.add.image(posX - (midaTile * (scaleX - 1)), posY - (midaTile * (scaleY - 1)), 'overlay2').setOrigin(1));
+    }
+  }

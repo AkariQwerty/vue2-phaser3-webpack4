@@ -8,7 +8,7 @@ function launch() {
         width: 960,
         height: 576,
 		//zoom: 0.4,
-		pixelArt: true,
+		//pixelArt: true,
         parent: 'game-container',
         /*physics: {
             default: 'arcade',
