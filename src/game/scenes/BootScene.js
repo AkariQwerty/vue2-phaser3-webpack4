@@ -10,6 +10,7 @@ import overlay from '@/game/assets/overlay.png';
 import overlay2 from '@/game/assets/overlay2.png';
 import fondo from '@/game/assets/fondo_titulo.png';
 import boton_jugar from '@/game/assets/b_jugar.png';
+import over_dau from '@/game/assets/over_dau.png'
 
 export default class BootScene extends Scene {
     constructor() {
@@ -29,6 +30,7 @@ export default class BootScene extends Scene {
       this.load.image('overlay2', overlay2);
       this.load.image('fondo', fondo);
       this.load.image('boton_jugar', boton_jugar);
+      this.load.image('over_dau', over_dau);
         // this.load.audio('thud', ['assets/thud.mp3', 'assets/thud.ogg'])
     }
 

@@ -1,9 +1,15 @@
 import { Scene } from 'phaser';
+let height = 576;
+let width = 960;
+
+let TERRA = 0;
+let AIGUA = 1;
+let AIRE = 2;
+let FOC = 3;
 let th;
-let nJugadors = 1
-let fitxesSprite = []
+let nJugadors = 4;
+let fitxesSprite = [];
 let fitxes = [];
-let tamany = 10
 let taulerAmplada = 15
 let taulerAlcada = 9
 let tauler = [];
@@ -13,12 +19,13 @@ let map;
 
 let casellaPosible = [];
 let cruzeta = [];
+let viu = []
 
-let fitxesTiles;
-let fitxesMap;
-let dibuixa = 3
-let midaTile = 64
-let jugadorAct = 0
+let midaTile = 64;
+let jugadorAct = 0;
+let puntuacio = [];
+let potMoure = false;
+let overTirar = [];
 
 function coordenades(x, y) {
     this.x = x;
@@ -78,36 +85,27 @@ export default class PlayScene extends Scene {
     var nouSprite;
     switch (i) {
       case 0:
-        nouSprite = this.add.image(midaTile, midaTile, 'fitxa_y');
-        nouSprite.setScale(.25);
-        nouSprite.setOrigin(1);
-        fitxesSprite.push(nouSprite);
+        in_jugador(midaTile, midaTile, 'fitxa_y');
         break;
       case 1:
-        nouSprite = this.add.image(taulerAmplada * midaTile, midaTile, 'fitxa_b');
-        nouSprite.setScale(.25);
-        nouSprite.setOrigin(1);
-        fitxesSprite.push(nouSprite);
+        in_jugador(taulerAmplada * midaTile, midaTile, 'fitxa_b');
         break;
       case 2:
-        nouSprite = this.add.image(midaTile, taulerAlcada * midaTile, 'fitxa_r');
-        nouSprite.setScale(.25);
-        nouSprite.setOrigin(1);
-        fitxesSprite.push(nouSprite);
+        in_jugador(midaTile, taulerAlcada * midaTile, 'fitxa_r');
         break;
       case 3:
-        nouSprite = this.add.image(taulerAmplada * midaTile, taulerAlcada * midaTile, 'fitxa_g');
-        nouSprite.setScale(.25);
-        nouSprite.setOrigin(1);
-        fitxesSprite.push(nouSprite);
+        in_jugador(taulerAmplada * midaTile, taulerAlcada * midaTile, 'fitxa_g');
         break;
     }
   }
-
+  mostra_dau();
   this.input.on('pointerdown', function (pointer) {
-
-        mou(jugadorAct, pointer)
-
+      if (potMoure){
+        mou(jugadorAct, pointer);
+      }
+      else{
+        tira_dau();
+      }
     }, this);
   }
 
@@ -117,29 +115,36 @@ export default class PlayScene extends Scene {
 
 }
 
+  function in_jugador(posX, posY, tipus){
+    var nouSprite = th.add.image(posX, posY, tipus);
+    nouSprite.setScale(.25);
+    nouSprite.setOrigin(1);
+    fitxesSprite.push(nouSprite);
+    puntuacio.push(0);
+    viu.push(true);
+  }
+
+  function seg_jugador(){
+    jugadorAct += 1;
+    while ((jugadorAct >= nJugadors) || (!viu[jugadorAct])) {
+      jugadorAct += 1
+      if (jugadorAct >= nJugadors) {
+        jugadorAct = 0;
+      }
+    }
+  }
   function mou (jugador, posicio) {
     var spriteMoure = fitxesSprite[jugador]
     var nouPosX = (Math.floor(posicio.x / midaTile) + 1);
     var nouPosY = (Math.floor(posicio.y / midaTile) + 1);
-    console.log(" ON ES MOU ");
-    console.log("JUGADRO = " + String(jugador));
-    console.log(nouPosX);
-    console.log(nouPosY);
-    console.log(casellaPosible[nouPosX][nouPosY]);
-    console.log(" ");
     if ( casellaPosible[nouPosX][nouPosY] ) {
-      console.log("JUGADOR ACT = " + String(jugadorAct));
-      //marca_posible(fitxesSprite[jugadorAct].x, fitxesSprite[jugadorAct].y); // TEST
       casellaPosible[nouPosX][nouPosY] = false;
       flip_casella(nouPosX * midaTile, nouPosY * midaTile);
       spriteMoure.x = nouPosX * midaTile;
       spriteMoure.y = nouPosY * midaTile;
       spriteMoure.setDepth(1);
-      jugadorAct += 1;
-      if (jugadorAct == nJugadors) {
-        jugadorAct = 0;
-      }
-      marca_posible(fitxesSprite[jugadorAct].x, fitxesSprite[jugadorAct].y);//, Phaser.Math.Between(1, 6));
+      mostra_dau();
+      seg_jugador();
     }
   }
 
@@ -147,7 +152,8 @@ export default class PlayScene extends Scene {
     th.add.image(casellaX - midaTile / 2, casellaY - midaTile / 2 , 'flip').setDepth(0);
   }
 
-  function marca_posible(casellaX, casellaY, numDau = 3) {
+  function marca_posible(casellaX, casellaY, numDau = 3, numIteracio = 1) {
+    var posible = false;
     var posXtauler = (Math.floor(casellaX / midaTile));
     var posYtauler = (Math.floor(casellaY / midaTile));
     for (var i = 0; i < cruzeta.length; i++) {
@@ -162,18 +168,25 @@ export default class PlayScene extends Scene {
     //MOVIMENT POSIBLE VERTICAL ADALT
     if (posYtauler - numDau > 1 && casellaPosible[posXtauler][posYtauler - numDau]){ // FUNCIONA
       dibuixa_overlay(casellaX, casellaY - midaTile, 1, numDau, false);
+      posible = true;
     }
     //MOVIMENT POSIBLE VERTICAL ABAIX
     if (posYtauler + numDau < taulerAlcada && casellaPosible[posXtauler][posYtauler + numDau]){ //FUNCIONA
       dibuixa_overlay(casellaX, casellaY + (numDau * midaTile), 1, numDau);
+      posible = true;
     }
     //MOVIMENT POSIBLE HORITZONTAL ESQUERRA
     if (posXtauler - numDau > 0 && casellaPosible[posXtauler - numDau][posYtauler]){
       dibuixa_overlay(casellaX - midaTile, casellaY, numDau, 1, false);
+      posible = true;
     }
     //MOVIMENT POSIBLE HORITZONTAL DRETA
     if (posXtauler + numDau <= taulerAmplada && casellaPosible[posXtauler + numDau][posYtauler]){
       dibuixa_overlay(casellaX + (midaTile * numDau), casellaY, numDau);
+      posible = true;
+    }
+    if (!posible) {
+      tira_dau(numIteracio + 1);
     }
 }
 
@@ -188,4 +201,49 @@ export default class PlayScene extends Scene {
     else {
       cruzeta.push(th.add.image(posX - (midaTile * (scaleX - 1)), posY - (midaTile * (scaleY - 1)), 'overlay2').setOrigin(1));
     }
+  }
+
+  function mostra_dau(){
+    for (var i = 0; i < overTirar.length; i++) {
+      overTirar[i].destroy();
+    }
+    potMoure = false;
+    overTirar.push(th.add.image(0, 0, 'over_dau').setOrigin(0));
+    var text = "Turn del jugador " + String(jugadorAct + 1);
+    overTirar.push(th.add.text(width / 2, 100, text, { fontFamily: 'Arial', fontSize: 64, color: '#691717' }).setOrigin(0.5));
+  }
+
+  function tira_dau(numIteracio = 0){
+    var numDau = Phaser.Math.Between(1, 6);
+    if (numIteracio){
+      numDau = numIteracio;
+    }
+    for (var i = 0; i < overTirar.length; i++) {
+      overTirar[i].destroy();
+    }
+    var text = "Et pots moure " + String(numDau) + " caselles";
+    overTirar.push(th.add.text(width / 2, midaTile / 2, text, { fontFamily: 'Arial', fontSize: 20, color: '#000000' }).setOrigin(0.5));
+    potMoure = true;
+    if (numIteracio == 7){
+      mata();
+    }
+    else{
+      marca_posible(fitxesSprite[jugadorAct].x, fitxesSprite[jugadorAct].y, numDau, numIteracio);
+    }
+  }
+
+  function mata(){
+    overTirar.push(th.add.text(width / 2, height / 2, "TAS MUERTO PTINDD", { fontFamily: 'Arial', fontSize: 50, color: '#000000' }).setOrigin(0.5));
+    viu[jugadorAct] = false;
+    potMoure = false;
+    var vius = 0;
+    for (var i = 0; i < viu.length; i++) {
+      if (viu[i]){
+        vius += 1;
+      }
+    }
+    if (vius < 1){
+      game_end();
+    }
+    seg_jugador();
   }
