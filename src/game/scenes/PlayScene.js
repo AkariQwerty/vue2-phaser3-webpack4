@@ -1,7 +1,7 @@
 import { Scene } from 'phaser';
 let height = 576;
 let width = 960;
-
+let nomJugadors = ["GROC", "BLAU", "VERMELL", "VERD"];
 let TERRA = 0;
 let AIGUA = 1;
 let AIRE = 2;
@@ -132,7 +132,9 @@ export default class PlayScene extends Scene {
         jugadorAct = 0;
       }
     }
+    console.log("JUGADRO ACTUAL " + String(jugadorAct));
   }
+
   function mou (jugador, posicio) {
     var spriteMoure = fitxesSprite[jugador]
     var nouPosX = (Math.floor(posicio.x / midaTile) + 1);
@@ -143,8 +145,8 @@ export default class PlayScene extends Scene {
       spriteMoure.x = nouPosX * midaTile;
       spriteMoure.y = nouPosY * midaTile;
       spriteMoure.setDepth(1);
-      mostra_dau();
       seg_jugador();
+      mostra_dau();
     }
   }
 
@@ -208,9 +210,9 @@ export default class PlayScene extends Scene {
       overTirar[i].destroy();
     }
     potMoure = false;
-    overTirar.push(th.add.image(0, 0, 'over_dau').setOrigin(0));
-    var text = "Turn del jugador " + String(jugadorAct + 1);
-    overTirar.push(th.add.text(width / 2, 100, text, { fontFamily: 'Arial', fontSize: 64, color: '#691717' }).setOrigin(0.5));
+    overTirar.push(th.add.image(0, 0, 'over_dau').setOrigin(0).setDepth(2));
+    var text = "Turn del jugador " + nomJugadors[jugadorAct];
+    overTirar.push(th.add.text(width / 2, 100, text, { fontFamily: 'Arial', fontSize: 64, color: '#ffffff' }).setOrigin(0.5).setDepth(3));
   }
 
   function tira_dau(numIteracio = 0){
@@ -233,17 +235,32 @@ export default class PlayScene extends Scene {
   }
 
   function mata(){
-    overTirar.push(th.add.text(width / 2, height / 2, "TAS MUERTO PTINDD", { fontFamily: 'Arial', fontSize: 50, color: '#000000' }).setOrigin(0.5));
+    overTirar.push(th.add.text(width / 2, height / 2, "TAS MUERTO Jugador " + nomJugadors[jugadorAct], { fontFamily: 'Arial', fontSize: 50, color: '#000000' }).setOrigin(0.5));
     viu[jugadorAct] = false;
     potMoure = false;
     var vius = 0;
+    var ultim;
+    console.log("SIGUEN VISU");
     for (var i = 0; i < viu.length; i++) {
       if (viu[i]){
+        console.log(nomJugadors[i]);
+        ultim = i;
         vius += 1;
       }
     }
-    if (vius < 1){
-      game_end();
+    if (vius < 2){
+      game_end(ultim);
     }
-    seg_jugador();
+    else{
+      seg_jugador();
+    }
+  }
+
+  function game_end(ultimViu){
+    var pantallaEnd = [];
+    var splash = th.add.image(0, 0, 'game_over').setOrigin(0);
+    splash.setDepth(2);
+    pantallaEnd.push(splash);
+    pantallaEnd.push(th.add.text(width / 2, 243, "Ha guanyat " + nomJugadors[ultimViu], { fontFamily: 'Arial', fontSize: 20, color: '#000000' }).setOrigin(0.5));
+    pantallaEnd[1].setDepth(3);
   }
