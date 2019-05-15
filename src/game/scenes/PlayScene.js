@@ -98,13 +98,16 @@ export default class PlayScene extends Scene {
         break;
     }
   }
+  var nDau;
   mostra_dau();
   this.input.on('pointerdown', function (pointer) {
       if (potMoure){
-        mou(jugadorAct, pointer);
+        if (pot_moure(fitxesSprite[jugadorAct].x, fitxesSprite[jugadorAct].y, pointer.x, pointer.y, nDau)){
+          mou(jugadorAct, pointer);
+        }
       }
       else{
-        tira_dau();
+        nDau = tira_dau();
       }
     }, this);
   }
@@ -231,6 +234,7 @@ export default class PlayScene extends Scene {
     }
     else{
       marca_posible(fitxesSprite[jugadorAct].x, fitxesSprite[jugadorAct].y, numDau, numIteracio);
+      return numDau;
     }
   }
 
@@ -263,4 +267,29 @@ export default class PlayScene extends Scene {
     pantallaEnd.push(splash);
     pantallaEnd.push(th.add.text(width / 2, 243, "Ha guanyat " + nomJugadors[ultimViu], { fontFamily: 'Arial', fontSize: 20, color: '#000000' }).setOrigin(0.5));
     pantallaEnd[1].setDepth(3);
+  }
+
+  function pot_moure(posXraw, posYraw, posClickXraw, posClickYraw, numDau){
+    var posClickX = (Math.floor(posClickXraw / midaTile) + 1);
+    var posClickY = (Math.floor(posClickYraw / midaTile) + 1);
+    var posX = (Math.floor(posXraw / midaTile));
+    var posY = (Math.floor(posYraw / midaTile));
+    console.log(posClickY);
+    console.log(posClickX);
+    console.log(posY);
+    console.log(posX);
+    var pot = false;
+    if (posX + numDau == posClickX && posY == posClickY){
+      pot = true;
+    }
+    if (posX - numDau == posClickX && posY == posClickY){
+      pot = true;
+    }
+    if (posX == posClickX && posY + numDau == posClickY){
+      pot = true;
+    }
+    if (posX == posClickX && posY - numDau == posClickY){
+      pot = true;
+    }
+    return pot;
   }

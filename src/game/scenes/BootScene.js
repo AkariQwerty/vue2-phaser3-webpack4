@@ -33,7 +33,7 @@ export default class BootScene extends Scene {
       this.load.image('boton_jugar', boton_jugar);
       this.load.image('over_dau', over_dau);
       this.load.image('game_over', game_over);
-        // this.load.audio('thud', ['assets/thud.mp3', 'assets/thud.ogg'])
+      // this.load.audio('thud', ['assets/thud.mp3', 'assets/thud.ogg'])
     }
 
     create() {
